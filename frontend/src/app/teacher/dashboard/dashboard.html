@@ -1,0 +1,59 @@
+<!-- school-management/frontend/src/app/teacher/dashboard/dashboard.html -->
+
+<app-main-layout [pageTitle]="'Teacher Dashboard'" [userName]="userName">
+  <div class="dashboard-container">
+    <!-- Column 1: List of Students -->
+    <div class="list-container">
+      <div class="content-header">
+        <h1>My Students</h1>
+      </div>
+      <mat-card>
+        <mat-card-content>
+          <mat-list role="list">
+            <mat-list-item
+              role="listitem"
+              *ngFor="let student of students"
+              (click)="selectStudent(student)"
+              [class.selected]="student._id === selectedStudent?._id">
+              {{ student.name }}
+            </mat-list-item>
+            <p *ngIf="!students || students.length === 0" class="placeholder-text">No students found in your grade.</p>
+          </mat-list>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Column 2: Marks for Selected Student -->
+    <div class="details-container">
+      <div *ngIf="selectedStudent; else noStudentSelected">
+        <div class="content-header">
+          <h1>Assign Marks for {{ selectedStudent.name }}</h1>
+        </div>
+        <mat-card>
+          <mat-card-content>
+            <div *ngFor="let subject of subjects" class="subject-mark-row">
+              <span class="subject-name">{{ subject.name }}</span>
+              <mat-form-field appearance="outline" class="mark-input">
+                <mat-label>Mark</mat-label>
+                <input
+                  matInput
+                  type="number"
+                  placeholder="0-100"
+                  [(ngModel)]="marks[subject._id]"
+                  (change)="onMarkChange(subject._id, $any($event.target).value)">
+              </mat-form-field>
+            </div>
+             <p *ngIf="!subjects || subjects.length === 0" class="placeholder-text">No subjects found for this grade.</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <ng-template #noStudentSelected>
+        <div class="placeholder-card">
+          <mat-icon>school</mat-icon>
+          <h2>Select a student</h2>
+          <p>Choose a student from the list to view and assign their marks.</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</app-main-layout>

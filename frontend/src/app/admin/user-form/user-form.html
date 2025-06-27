@@ -1,0 +1,42 @@
+<!-- school-management/frontend/src/app/admin/user-form/user-form.html -->
+
+<h1 mat-dialog-title>{{ formTitle }}</h1>
+<form mat-dialog-content [formGroup]="userForm">
+  <mat-form-field appearance="fill">
+    <mat-label>Name</mat-label>
+    <input matInput formControlName="name" required>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Email</mat-label>
+    <input matInput type="email" formControlName="email" required>
+    <mat-hint *ngIf="isEditMode">Email cannot be changed.</mat-hint>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Password</mat-label>
+    <input matInput type="password" formControlName="password" [required]="!isEditMode">
+    <mat-hint *ngIf="isEditMode">Leave blank to keep the current password.</mat-hint>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Role</mat-label>
+    <input matInput formControlName="role" readonly>
+    <mat-hint>Role is determined by the list you are on.</mat-hint>
+  </mat-form-field>
+
+  <mat-form-field appearance="fill">
+    <mat-label>Assign to Grade</mat-label>
+    <mat-select formControlName="grade">
+        <mat-option [value]="null">None</mat-option>
+        <mat-option *ngFor="let grade of availableGrades" [value]="grade._id">
+            {{grade.name}}
+        </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+</form>
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-flat-button color="primary" [disabled]="userForm.invalid" (click)="onSave()">Save</button>
+</div>

@@ -1,0 +1,53 @@
+<!-- school-management/frontend/src/app/auth/login/login.html -->
+
+<div class="login-page-wrapper">
+  <!-- Left Panel: Branding & Welcome Message -->
+  <div class="left-panel">
+    <div class="branding">
+      <mat-icon class="brand-icon">school</mat-icon>
+      <h1>School Portal</h1>
+    </div>
+    <div class="welcome-text">
+      <h2>Welcome Back</h2>
+      <p>Please enter your credentials to access your dashboard.</p>
+    </div>
+    <div class="footer-text">
+      © 2024 School Management System
+    </div>
+  </div>
+
+  <!-- Right Panel: Login Form -->
+  <div class="right-panel">
+    <div class="login-form-container">
+      <h3>Sign In</h3>
+      <p>Log in with your administrator, teacher, or student account.</p>
+
+      <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline">
+          <mat-label>Email Address</mat-label>
+          <input matInput placeholder="e.g., user@school.com" type="email" formControlName="email">
+          <mat-icon matSuffix>email</mat-icon>
+          <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
+            Email is required.
+          </mat-error>
+          <mat-error *ngIf="loginForm.get('email')?.hasError('email')">
+            Please enter a valid email address.
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Password</mat-label>
+          <input matInput type="password" formControlName="password">
+          <mat-icon matSuffix>lock</mat-icon>
+          <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
+            Password is required.
+          </mat-error>
+        </mat-form-field>
+
+        <button mat-flat-button color="primary" type="submit" [disabled]="loginForm.invalid">
+          Login
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

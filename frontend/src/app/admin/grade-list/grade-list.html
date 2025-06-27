@@ -1,0 +1,42 @@
+<!-- school-management/frontend/src/app/admin/grade-list/grade-list.html -->
+
+<div class="header">
+    <h2>Manage Grades</h2>
+    <button mat-flat-button color="primary" (click)="addGrade()">Add New Grade</button>
+  </div>
+  
+  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+  
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef> Grade Name </th>
+      <td mat-cell *matCellDef="let grade"> {{grade.name}} </td>
+    </ng-container>
+  
+    <!-- Subjects Column -->
+    <ng-container matColumnDef="subjects">
+      <th mat-header-cell *matHeaderCellDef> Assigned Subjects </th>
+      <td mat-cell *matCellDef="let grade">
+        <mat-chip-listbox>
+          <mat-chip *ngFor="let subject of grade.subjects">{{subject.name}}</mat-chip>
+          <span *ngIf="!grade.subjects || grade.subjects.length === 0">No subjects assigned</span>
+        </mat-chip-listbox>
+      </td>
+    </ng-container>
+  
+    <!-- Actions Column -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef> Actions </th>
+      <td mat-cell *matCellDef="let grade">
+        <button mat-icon-button color="primary" (click)="editGrade(grade)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" (click)="deleteGrade(grade._id)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+  
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>

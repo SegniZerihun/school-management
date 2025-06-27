@@ -1,0 +1,29 @@
+<!-- school-management/frontend/src/app/admin/grade-form/grade-form.html -->
+
+<h1 mat-dialog-title>{{isEditMode ? 'Edit Grade' : 'Add New Grade'}}</h1>
+
+<form mat-dialog-content [formGroup]="gradeForm">
+  <mat-form-field appearance="fill">
+    <mat-label>Grade Name</mat-label>
+    <input matInput formControlName="name" required cdkFocusInitial>
+    <mat-error *ngIf="gradeForm.get('name')?.hasError('required')">
+      Grade name is required.
+    </mat-error>
+  </mat-form-field>
+
+  <!-- New Multi-Select for Subjects -->
+  <mat-form-field appearance="fill">
+    <mat-label>Subjects in this Grade</mat-label>
+    <mat-select formControlName="subjects" multiple>
+      <mat-option *ngFor="let subject of allSubjects" [value]="subject._id">
+        {{subject.name}}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+</form>
+
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-flat-button color="primary" [disabled]="gradeForm.invalid" (click)="onSave()">Save</button>
+</div>

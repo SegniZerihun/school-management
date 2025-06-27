@@ -1,0 +1,9 @@
+<!-- school-management/frontend/src/app/admin/dashboard/dashboard.html -->
+
+<app-main-layout [pageTitle]="'Admin Dashboard'" [navLinks]="navLinks" [userName]="userName">
+  <!--
+    The router will render the correct component here (SubjectList, GradeList, etc.)
+    based on the URL, which is changed by clicking the sidebar links.
+  -->
+  <router-outlet></router-outlet>
+</app-main-layout>

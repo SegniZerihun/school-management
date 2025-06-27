@@ -1,0 +1,1427 @@
+app/
+|-- admin
+|   |-- dashboard
+|   |   |-- dashboard.html
+|   |   |-- dashboard.scss
+|   |   |-- dashboard.spec.ts
+|   |   |-- dashboard.ts
+|   |-- grade-form
+|   |   |-- grade-form.html
+|   |   |-- grade-form.scss
+|   |   |-- grade-form.spec.ts
+|   |   |-- grade-form.ts
+|   |-- grade-list
+|   |   |-- grade-list.html
+|   |   |-- grade-list.scss
+|   |   |-- grade-list.spec.ts
+|   |   |-- grade-list.ts
+|   |-- subject-form
+|   |   |-- subject-form.html
+|   |   |-- subject-form.scss
+|   |   |-- subject-form.spec.ts
+|   |   |-- subject-form.ts
+|   |-- subject-list
+|   |   |-- subject-list.html
+|   |   |-- subject-list.scss
+|   |   |-- subject-list.spec.ts
+|   |   |-- subject-list.ts
+|   |-- user-form
+|   |   |-- user-form.html
+|   |   |-- user-form.scss
+|   |   |-- user-form.spec.ts
+|   |   |-- user-form.ts
+|   |-- user-list
+|   |   |-- user-list.html
+|   |   |-- user-list.scss
+|   |   |-- user-list.spec.ts
+|   |   |-- user-list.ts
+|-- app.config.ts
+|-- app.html
+|-- app.routes.ts
+|-- app.scss
+|-- app.spec.ts
+|-- app.ts
+|-- auth
+|   |-- login
+|   |   |-- login.html
+|   |   |-- login.scss
+|   |   |-- login.spec.ts
+|   |   |-- login.ts
+|-- _guards
+|   |-- auth-guard.spec.ts
+|   |-- auth-guard.ts
+|-- _services
+|   |-- auth.spec.ts
+|   |-- auth.ts
+|   |-- grade.spec.ts
+|   |-- grade.ts
+|   |-- subject.spec.ts
+|   |-- subject.ts
+|   |-- user.spec.ts
+|   |-- user.ts
+
+=== File Contents ===
+
+--- app/admin/dashboard/dashboard.html ---
+<mat-toolbar color="primary">...</mat-toolbar>
+<div class="content">
+  <mat-tab-group>
+    <mat-tab label="Subjects">
+      <app-subject-list></app-subject-list>
+    </mat-tab>
+    <mat-tab label="Grades">
+      <app-grade-list></app-grade-list>
+    </mat-tab>
+    <mat-tab label="Teachers">
+      <app-user-list [userRole]="'Teacher'"></app-user-list>
+    </mat-tab>
+    <mat-tab label="Students">
+      <app-user-list [userRole]="'Student'"></app-user-list>
+    </mat-tab>
+  </mat-tab-group>
+</div>
+
+--- app/admin/dashboard/dashboard.spec.ts ---
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { Dashboard } from './dashboard';
+
+describe('Dashboard', () => {
+  let component: Dashboard;
+  let fixture: ComponentFixture<Dashboard>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [Dashboard]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(Dashboard);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+
+--- app/admin/dashboard/dashboard.ts ---
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthService } from '../../_services/auth';
+
+// --- Import Material Modules ---
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTabsModule } from '@angular/material/tabs'; // For the tabs
+
+// --- Import the List Components you want to use in the template ---
+import { SubjectList } from '../subject-list/subject-list';
+import { GradeList } from '../grade-list/grade-list';
+import { UserList } from '../user-list/user-list';
+
+@Component({
+  selector: 'app-dashboard',
+  standalone: true,
+  imports: [
+    MatToolbarModule, 
+    MatButtonModule,
+    MatTabsModule,
+    SubjectList,
+    GradeList,
+    UserList
+  ],
+  templateUrl: './dashboard.html',
+  styleUrl: './dashboard.scss'
+})
+export class DashboardComponent {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+}
+
+--- app/admin/grade-form/grade-form.html ---
+<h1 mat-dialog-title>Add New grade</h1>
+
+<form mat-dialog-content [formGroup]="gradeForm">
+  <mat-form-field appearance="fill">
+    <mat-label>grade Name</mat-label>
+    <input matInput formControlName="name" required>
+  </mat-form-field>
+  
+  <mat-form-field appearance="fill">
+    <mat-label>Description</mat-label>
+    <textarea matInput formControlName="description"></textarea>
+  </mat-form-field>
+</form>
+
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-flat-button color="primary" [disabled]="gradeForm.invalid" (click)="onSave()">Save</button>
+</div>
+
+--- app/admin/grade-form/grade-form.spec.ts ---
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { GradeForm } from './grade-form';
+
+describe('GradeForm', () => {
+  let component: GradeForm;
+  let fixture: ComponentFixture<GradeForm>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [GradeForm]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(GradeForm);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+
+--- app/admin/grade-form/grade-form.ts ---
+import { Component, Inject, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+
+@Component({
+  selector: 'app-grade-form',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule
+  ],
+  templateUrl: './grade-form.html',
+})
+export class GradeForm {
+  gradeForm: FormGroup;
+  private fb = inject(FormBuilder);
+
+  constructor(
+    public dialogRef: MatDialogRef<GradeForm>,
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) {
+    this.gradeForm = this.fb.group({
+      name: [data?.name || '', Validators.required],
+      description: [data?.description || '']
+    });
+  }
+
+  onCancel(): void {
+    this.dialogRef.close();
+  }
+
+  onSave(): void {
+    if (this.gradeForm.valid) {
+      this.dialogRef.close(this.gradeForm.value);
+    }
+  }
+}
+
+--- app/admin/grade-list/grade-list.html ---
+<div class="header">
+    <h2>Manage grades</h2>
+    <button mat-flat-button color="primary" (click)="addGrade()">Add New grade</button>
+  </div>
+  
+  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+  
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef> Name </th>
+      <td mat-cell *matCellDef="let grade"> {{grade.name}} </td>
+    </ng-container>
+  
+    <!-- Description Column (This was missing) -->
+    <ng-container matColumnDef="description">
+      <th mat-header-cell *matHeaderCellDef> Description </th>
+      <td mat-cell *matCellDef="let grade"> {{grade.description}} </td>
+    </ng-container>
+  
+    <!-- Actions Column -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef> Actions </th>
+      <td mat-cell *matCellDef="let grade">
+        <button mat-icon-button color="primary" (click)="editGrade(grade)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" (click)="deleteGrade(grade._id)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+  
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+--- app/admin/grade-list/grade-list.spec.ts ---
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { GradeList } from './grade-list';
+
+describe('GradeList', () => {
+  let component: GradeList;
+  let fixture: ComponentFixture<GradeList>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [GradeList]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(GradeList);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+
+--- app/admin/grade-list/grade-list.ts ---
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { GradeService } from '../../_services/grade';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { GradeForm } from '../grade-form/grade-form';
+import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
+export interface Grade {
+  _id: string;
+  name: string;
+  description: string;
+}
+
+@Component({
+  selector: 'app-grade-list',
+  standalone: true,
+  // REMOVED GradeForm from this array
+  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatDialogModule],
+  templateUrl: './grade-list.html',
+  styleUrl: './grade-list.scss'
+})
+export class GradeList implements OnInit {
+  private gradeService = inject(GradeService);
+  private snackBar = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
+
+  displayedColumns: string[] = ['name', 'description', 'actions'];
+  dataSource: Grade[] = [];
+
+  ngOnInit(): void {
+    this.loadGrades();
+  }
+
+  loadGrades(): void {
+    this.gradeService.getGrades().subscribe({
+      next: (res) => {
+        this.dataSource = res.data;
+      },
+      error: (err) => console.error('Failed to load grades', err)
+    });
+  }
+
+  deleteGrade(id: string): void {
+    if (confirm('Are you sure you want to delete this grade?')) {
+      this.gradeService.deleteGrade(id).subscribe({
+        next: () => {
+          this.snackBar.open('Grade deleted successfully', 'Close', { duration: 3000 });
+          this.loadGrades();
+        },
+        error: (err) => {
+          this.snackBar.open('Failed to delete grade', 'Close', { duration: 3000 });
+          console.error(err);
+        }
+      });
+    }
+  }
+
+  addGrade(): void {
+    const dialogRef = this.dialog.open(GradeForm, {
+      width: '400px'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.gradeService.createGrade(result).subscribe({
+          next: () => {
+            this.snackBar.open('Grade created successfully', 'Close', { duration: 3000 });
+            this.loadGrades();
+          },
+          error: (err) => {
+            this.snackBar.open('Failed to create grade', 'Close', { duration: 3000 });
+            console.error(err);
+          }
+        });
+      }
+    });
+  }
+
+  editGrade(grade: Grade): void {
+    const dialogRef = this.dialog.open(GradeForm, {
+      width: '400px',
+      data: grade
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.gradeService.updateGrade(grade._id, result).subscribe({
+          next: () => {
+            this.snackBar.open('Grade updated successfully', 'Close', { duration: 3000 });
+            this.loadGrades();
+          },
+          error: (err) => {
+            this.snackBar.open('Failed to update grade', 'Close', { duration: 3000 });
+            console.error(err);
+          }
+        });
+      }
+    });
+  }
+}
+
+--- app/admin/subject-form/subject-form.html ---
+<h1 mat-dialog-title>Add New Subject</h1>
+
+<form mat-dialog-content [formGroup]="subjectForm">
+  <mat-form-field appearance="fill">
+    <mat-label>Subject Name</mat-label>
+    <input matInput formControlName="name" required>
+  </mat-form-field>
+  
+  <mat-form-field appearance="fill">
+    <mat-label>Description</mat-label>
+    <textarea matInput formControlName="description"></textarea>
+  </mat-form-field>
+</form>
+
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-flat-button color="primary" [disabled]="subjectForm.invalid" (click)="onSave()">Save</button>
+</div>
+
+--- app/admin/subject-form/subject-form.spec.ts ---
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { SubjectForm } from './subject-form';
+
+describe('SubjectForm', () => {
+  let component: SubjectForm;
+  let fixture: ComponentFixture<SubjectForm>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [SubjectForm]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(SubjectForm);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+
+--- app/admin/subject-form/subject-form.ts ---
+import { Component, Inject, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+
+@Component({
+  selector: 'app-subject-form',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule
+  ],
+  templateUrl: './subject-form.html',
+})
+export class SubjectForm {
+  subjectForm: FormGroup;
+  private fb = inject(FormBuilder);
+
+  constructor(
+    public dialogRef: MatDialogRef<SubjectForm>,
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) {
+    this.subjectForm = this.fb.group({
+      name: [data?.name || '', Validators.required],
+      description: [data?.description || '']
+    });
+  }
+
+  onCancel(): void {
+    this.dialogRef.close();
+  }
+
+  onSave(): void {
+    if (this.subjectForm.valid) {
+      this.dialogRef.close(this.subjectForm.value);
+    }
+  }
+}
+
+--- app/admin/subject-list/subject-list.html ---
+<div class="header">
+    <h2>Manage Subjects</h2>
+    <button mat-flat-button color="primary" (click)="addSubject()">Add New Subject</button>
+  </div>
+  
+  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+  
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef> Name </th>
+      <td mat-cell *matCellDef="let subject"> {{subject.name}} </td>
+    </ng-container>
+  
+    <!-- Description Column -->
+    <ng-container matColumnDef="description">
+      <th mat-header-cell *matHeaderCellDef> Description </th>
+      <td mat-cell *matCellDef="let subject"> {{subject.description}} </td>
+    </ng-container>
+  
+    <!-- Actions Column -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef> Actions </th>
+      <td mat-cell *matCellDef="let subject">
+        <button mat-icon-button color="primary" (click)="editSubject(subject)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" (click)="deleteSubject(subject._id)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+  
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+--- app/admin/subject-list/subject-list.spec.ts ---
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { SubjectList } from './subject-list';
+
+describe('SubjectList', () => {
+  let component: SubjectList;
+  let fixture: ComponentFixture<SubjectList>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [SubjectList]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(SubjectList);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+
+--- app/admin/subject-list/subject-list.ts ---
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { SubjectService } from '../../_services/subject';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { SubjectForm } from '../subject-form/subject-form';
+import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
+export interface Subject {
+  _id: string;
+  name: string;
+  description: string;
+}
+
+@Component({
+  selector: 'app-subject-list',
+  standalone: true,
+  // REMOVED SubjectForm from this array
+  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatDialogModule],
+  templateUrl: './subject-list.html',
+  styleUrl: './subject-list.scss'
+})
+export class SubjectList implements OnInit {
+  private subjectService = inject(SubjectService);
+  private snackBar = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
+
+  displayedColumns: string[] = ['name', 'description', 'actions'];
+  dataSource: Subject[] = [];
+
+  ngOnInit(): void {
+    this.loadSubjects();
+  }
+
+  loadSubjects(): void {
+    this.subjectService.getSubjects().subscribe({
+      next: (res) => {
+        this.dataSource = res.data;
+      },
+      error: (err) => console.error('Failed to load subjects', err)
+    });
+  }
+
+  deleteSubject(id: string): void {
+    if (confirm('Are you sure you want to delete this subject?')) {
+      this.subjectService.deleteSubject(id).subscribe({
+        next: () => {
+          this.snackBar.open('Subject deleted successfully', 'Close', { duration: 3000 });
+          this.loadSubjects();
+        },
+        error: (err) => {
+          this.snackBar.open('Failed to delete subject', 'Close', { duration: 3000 });
+          console.error(err);
+        }
+      });
+    }
+  }
+
+  addSubject(): void {
+    const dialogRef = this.dialog.open(SubjectForm, {
+      width: '400px'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.subjectService.createSubject(result).subscribe({
+          next: () => {
+            this.snackBar.open('Subject created successfully', 'Close', { duration: 3000 });
+            this.loadSubjects();
+          },
+          error: (err) => {
+            this.snackBar.open('Failed to create subject', 'Close', { duration: 3000 });
+            console.error(err);
+          }
+        });
+      }
+    });
+  }
+
+  editSubject(subject: Subject): void {
+    const dialogRef = this.dialog.open(SubjectForm, {
+      width: '400px',
+      data: subject
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.subjectService.updateSubject(subject._id, result).subscribe({
+          next: () => {
+            this.snackBar.open('Subject updated successfully', 'Close', { duration: 3000 });
+            this.loadSubjects();
+          },
+          error: (err) => {
+            this.snackBar.open('Failed to update subject', 'Close', { duration: 3000 });
+            console.error(err);
+          }
+        });
+      }
+    });
+  }
+}
+
+--- app/admin/user-form/user-form.html ---
+<h1 mat-dialog-title>{{data ? 'Edit User' : 'Add New User'}}</h1>
+<form mat-dialog-content [formGroup]="userForm">
+  <mat-form-field appearance="fill">
+    <mat-label>Name</mat-label>
+    <input matInput formControlName="name" required>
+  </mat-form-field>
+  <mat-form-field appearance="fill">
+    <mat-label>Email</mat-label>
+    <input matInput type="email" formControlName="email" required>
+  </mat-form-field>
+  <mat-form-field appearance="fill">
+    <mat-label>Password</mat-label>
+    <input matInput type="password" formControlName="password" required>
+  </mat-form-field>
+  <mat-form-field appearance="fill">
+    <mat-label>Role</mat-label>
+    <mat-select formControlName="role" required>
+      <mat-option *ngFor="let role of roles" [value]="role">{{role}}</mat-option>
+    </mat-select>
+  </mat-form-field>
+</form>
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-flat-button color="primary" [disabled]="userForm.invalid" (click)="onSave()">Save</button>
+</div>
+
+--- app/admin/user-form/user-form.spec.ts ---
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { UserForm } from './user-form';
+
+describe('UserForm', () => {
+  let component: UserForm;
+  let fixture: ComponentFixture<UserForm>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [UserForm]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(UserForm);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+
+--- app/admin/user-form/user-form.ts ---
+import { Component, Inject, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSelectModule } from '@angular/material/select';
+
+@Component({
+  selector: 'app-user-form',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatSelectModule
+  ],
+  templateUrl: './user-form.html',
+})
+export class UserForm {
+  userForm: FormGroup;
+  roles = ['Student', 'Teacher'];
+  private fb = inject(FormBuilder);
+
+  constructor(
+    public dialogRef: MatDialogRef<UserForm>,
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) {
+    // If we are editing (data exists), password is not required.
+    // If we are creating (data is null), password is required.
+    const passwordValidators = this.data ? [] : [Validators.required];
+
+    this.userForm = this.fb.group({
+      name: [this.data?.user?.name || '', Validators.required],
+      email: [this.data?.user?.email || '', [Validators.required, Validators.email]],
+      password: ['', passwordValidators], // Use the conditional validator
+      // Use the role passed from the list component. If editing, use the user's role.
+      role: [this.data?.role || this.data?.user?.role || '', Validators.required]
+    });
+
+    // When adding a new user, the role should be pre-set and disabled.
+    if (this.data && !this.data.user) {
+        this.userForm.get('role')?.disable();
+    }
+  }
+
+  onCancel(): void {
+    this.dialogRef.close();
+  }
+
+  onSave(): void {
+    if (this.userForm.valid) {
+      // Return the raw value, including the disabled role
+      this.dialogRef.close(this.userForm.getRawValue());
+    }
+  }
+}
+
+--- app/admin/user-list/user-list.html ---
+<div class="header">
+    <!-- Use the userRole input to make the title dynamic -->
+    <h2>Manage {{userRole}}s</h2> 
+    <button mat-flat-button color="primary" (click)="addUser()">Add New {{userRole}}</button>
+  </div>
+  
+  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+  
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef> Name </th>
+      <td mat-cell *matCellDef="let user"> {{user.name}} </td>
+    </ng-container>
+  
+    <!-- Email Column (Changed from Description) -->
+    <ng-container matColumnDef="email">
+      <th mat-header-cell *matHeaderCellDef> Email </th>
+      <td mat-cell *matCellDef="let user"> {{user.email}} </td>
+    </ng-container>
+  
+    <!-- Actions Column -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef> Actions </th>
+      <td mat-cell *matCellDef="let user">
+        <button mat-icon-button color="primary" (click)="editUser(user)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" (click)="deleteUser(user._id)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+  
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+--- app/admin/user-list/user-list.spec.ts ---
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { UserList } from './user-list';
+
+describe('UserList', () => {
+  let component: UserList;
+  let fixture: ComponentFixture<UserList>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [UserList]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(UserList);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+
+--- app/admin/user-list/user-list.ts ---
+import { Component, OnInit, inject, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { UserService } from '../../_services/user';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { UserForm } from '../user-form/user-form';
+import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
+// Update User interface to reflect the actual data
+export interface User {
+  _id: string;
+  name: string;
+  email: string; // Changed from description
+  role: string;
+}
+
+@Component({
+  selector: 'app-user-list',
+  standalone: true,
+  // REMOVED UserForm from this array
+  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatDialogModule],
+  templateUrl: './user-list.html',
+  styleUrl: './user-list.scss'
+})
+export class UserList implements OnInit {
+  @Input() userRole!: string;
+
+  private userService = inject(UserService);
+  private snackBar = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
+
+  // Update displayedColumns to show relevant info
+  displayedColumns: string[] = ['name', 'email', 'actions'];
+  dataSource: User[] = [];
+
+  ngOnInit(): void {
+    this.loadUsers();
+  }
+
+  loadUsers(): void {
+    this.userService.getUsersByRole(this.userRole).subscribe({
+      next: (res) => {
+        this.dataSource = res.data;
+      },
+      error: (err) => console.error(`Failed to load ${this.userRole}s`, err)
+    });
+  }
+
+  deleteUser(id: string): void {
+    if (confirm('Are you sure you want to delete this user?')) {
+      this.userService.deleteUser(id).subscribe({
+        next: () => {
+          this.snackBar.open('User deleted successfully', 'Close', { duration: 3000 });
+          this.loadUsers();
+        },
+        error: (err) => {
+          this.snackBar.open('Failed to delete user', 'Close', { duration: 3000 });
+          console.error(err);
+        }
+      });
+    }
+  }
+
+  addUser(): void {
+    const dialogRef = this.dialog.open(UserForm, {
+      width: '400px',
+      // Pass the role of the current list to the form
+      data: { role: this.userRole }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // The user service handles registration
+        this.userService.createUser(result).subscribe({
+          next: () => {
+            this.snackBar.open('User created successfully', 'Close', { duration: 3000 });
+            this.loadUsers();
+          },
+          error: (err) => {
+            this.snackBar.open('Failed to create user', 'Close', { duration: 3000 });
+            console.error(err);
+          }
+        });
+      }
+    });
+  }
+
+  editUser(user: User): void {
+    const dialogRef = this.dialog.open(UserForm, {
+      width: '400px',
+      // Pass the full user object
+      data: { user: user }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+            // Remove password from payload if it's empty, so we don't overwrite it
+            if (!result.password) {
+                delete result.password;
+            }
+            this.userService.updateUser(user._id, result).subscribe({
+                next: () => {
+                    this.snackBar.open('User updated successfully', 'Close', { duration: 3000 });
+                    this.loadUsers();
+                },
+                error: (err) => {
+                    this.snackBar.open('Failed to update user', 'Close', { duration: 3000 });
+                    console.error(err);
+                }
+            });
+        }
+    });
+  }
+}
+
+--- app/app.config.ts ---
+import { ApplicationConfig, importProvidersFrom } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { routes } from './app.routes';
+import { provideAnimations } from '@angular/platform-browser/animations';
+
+// Import the NEW provider function for HttpClient
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+
+// We still need this for forms
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideRouter(routes),
+    provideAnimations(),
+    
+    // Use the new, correct way to provide HttpClient
+    provideHttpClient(withInterceptorsFromDi()), 
+    
+    // FormsModule and ReactiveFormsModule still need to be imported this way
+    importProvidersFrom(
+      FormsModule,
+      ReactiveFormsModule
+    )
+  ]
+};
+
+--- app/app.html ---
+<router-outlet></router-outlet>
+
+--- app/app.routes.ts ---
+
+import { Routes } from '@angular/router';
+import { authGuard } from './_guards/auth-guard';
+
+export const routes: Routes = [
+    // Redirect the root path to the login page
+    { path: '', redirectTo: 'login', pathMatch: 'full' },
+    
+    // Define the login route
+    { 
+        path: 'login', 
+        // Lazy load the LoginComponent when the /login route is activated
+        loadComponent: () => import('./auth/login/login').then(m => m.LoginComponent)
+    },
+    {
+        path: 'admin',
+        // The path to your dashboard.ts file and DashboardComponent class
+        loadComponent: () => import('./admin/dashboard/dashboard').then(m => m.DashboardComponent),
+        canActivate: [authGuard] 
+    }
+];
+
+--- app/app.spec.ts ---
+import { TestBed } from '@angular/core/testing';
+import { App } from './app';
+
+describe('App', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [App],
+    }).compileComponents();
+  });
+
+  it('should create the app', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    expect(app).toBeTruthy();
+  });
+
+  it('should render title', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, frontend');
+  });
+});
+
+
+--- app/app.ts ---
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+
+@Component({
+  selector: 'app-root',
+  imports: [RouterOutlet],
+  templateUrl: './app.html',
+  styleUrl: './app.scss'
+})
+export class App {
+  protected title = 'frontend';
+}
+
+
+--- app/auth/login/login.html ---
+<div class="login-container">
+    <mat-card>
+      <!-- ... header ... -->
+      <mat-card-content>
+        <form class="login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+          <mat-form-field appearance="fill">
+            <mat-label>Email</mat-label>
+            <input matInput placeholder="Enter your email" type="email" formControlName="email">
+          </mat-form-field>
+          <mat-form-field appearance="fill">
+            <mat-label>Password</mat-label>
+            <input matInput placeholder="Enter your password" type="password" formControlName="password">
+          </mat-form-field>
+        </form>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid" (click)="onSubmit()">Login</button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+--- app/auth/login/login.spec.ts ---
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { Login } from './login';
+
+describe('Login', () => {
+  let component: Login;
+  let fixture: ComponentFixture<Login>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [Login]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(Login);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+
+--- app/auth/login/login.ts ---
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AuthService } from '../../_services/auth'; // <-- Correct path to your service
+
+// --- Material Modules ---
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+
+@Component({
+  selector: 'app-login',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule, // <-- Add for reactive forms
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatSnackBarModule
+  ],
+  templateUrl: './login.html',
+  styleUrls: ['./login.scss']
+})
+export class LoginComponent { // <-- The class name is LoginComponent
+  loginForm: FormGroup;
+  
+  private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private snackBar = inject(MatSnackBar);
+
+  constructor() {
+    this.loginForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required]]
+    });
+  }
+
+  onSubmit(): void {
+    if (this.loginForm.valid) {
+      this.authService.login(this.loginForm.value).subscribe({
+        next: (response) => {
+          console.log('Login successful', response);
+          this.authService.setToken(response.token);
+          this.router.navigate(['/admin']); // Placeholder navigation
+        },
+        error: (err) => {
+          console.error('Login failed', err);
+          this.snackBar.open('Login failed. Check credentials.', 'Close', {
+            duration: 3000
+          });
+        }
+      });
+    }
+  }
+}
+
+--- app/_guards/auth-guard.spec.ts ---
+import { TestBed } from '@angular/core/testing';
+import { CanActivateFn } from '@angular/router';
+
+import { authGuard } from './auth-guard';
+
+describe('authGuard', () => {
+  const executeGuard: CanActivateFn = (...guardParameters) => 
+      TestBed.runInInjectionContext(() => authGuard(...guardParameters));
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+  });
+
+  it('should be created', () => {
+    expect(executeGuard).toBeTruthy();
+  });
+});
+
+
+--- app/_guards/auth-guard.ts ---
+import { inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
+import { AuthService } from '../_services/auth'; // Use your AuthService
+
+export const authGuard: CanActivateFn = (route, state) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  // Check if the user's token exists
+  if (authService.getToken()) {
+    // User is logged in, so allow access
+    return true;
+  } else {
+    // User is not logged in, redirect to the login page
+    router.navigate(['/login']);
+    return false;
+  }
+};
+
+--- app/_services/auth.spec.ts ---
+import { TestBed } from '@angular/core/testing';
+
+import { Auth } from './auth';
+
+describe('Auth', () => {
+  let service: Auth;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(Auth);
+  });
+
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+});
+
+
+--- app/_services/auth.ts ---
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthService { // <-- Let's name the class AuthService
+  private apiUrl = 'http://localhost:5000/api/auth';
+
+  constructor(private http: HttpClient) { }
+
+  login(credentials: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/login`, credentials);
+  }
+
+  setToken(token: string): void {
+    localStorage.setItem('token', token);
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem('token');
+  }
+
+  logout(): void {
+    localStorage.removeItem('token');
+  }
+}
+
+--- app/_services/grade.spec.ts ---
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { AuthService } from './auth';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class gradeService {
+  private apiUrl = 'http://localhost:3000/api/grades';
+  private authService = inject(AuthService);
+
+  constructor(private http: HttpClient) { }
+  
+  // Helper to get auth headers
+  private getAuthHeaders(): HttpHeaders {
+    const token = this.authService.getToken();
+    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
+  }
+
+  getgrades(): Observable<any> {
+    return this.http.get(this.apiUrl, { headers: this.getAuthHeaders() });
+  }
+
+  creategrade(gradeData: any): Observable<any> {
+    return this.http.post(this.apiUrl, gradeData, { headers: this.getAuthHeaders() });
+  }
+  
+  // Add update and delete methods later
+  deletegrade(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() });
+  }
+}
+
+--- app/_services/grade.ts ---
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { AuthService } from './auth';
+
+@Injectable({ providedIn: 'root' })
+export class GradeService {
+  private apiUrl = 'http://localhost:3000/api/grades';
+  private authService = inject(AuthService);
+  private http = inject(HttpClient);
+
+  private getAuthHeaders = () => new HttpHeaders().set('Authorization', `Bearer ${this.authService.getToken()}`);
+  getGrades = (): Observable<any> => this.http.get(this.apiUrl, { headers: this.getAuthHeaders() });
+  createGrade = (data: any): Observable<any> => this.http.post(this.apiUrl, data, { headers: this.getAuthHeaders() });
+  updateGrade = (id: string, data: any): Observable<any> => this.http.put(`${this.apiUrl}/${id}`, data, { headers: this.getAuthHeaders() });
+  deleteGrade = (id: string): Observable<any> => this.http.delete(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() });
+}
+
+--- app/_services/subject.spec.ts ---
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { AuthService } from './auth';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class SubjectService {
+  private apiUrl = 'http://localhost:3000/api/subjects';
+  private authService = inject(AuthService);
+
+  constructor(private http: HttpClient) { }
+  
+  // Helper to get auth headers
+  private getAuthHeaders(): HttpHeaders {
+    const token = this.authService.getToken();
+    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
+  }
+
+  getSubjects(): Observable<any> {
+    return this.http.get(this.apiUrl, { headers: this.getAuthHeaders() });
+  }
+
+  createSubject(subjectData: any): Observable<any> {
+    return this.http.post(this.apiUrl, subjectData, { headers: this.getAuthHeaders() });
+  }
+  
+  // Add update and delete methods later
+  deleteSubject(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() });
+  }
+}
+
+--- app/_services/subject.ts ---
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { AuthService } from './auth';
+
+@Injectable({ providedIn: 'root' })
+export class SubjectService {
+  private apiUrl = 'http://localhost:3000/api/subjects';
+  private authService = inject(AuthService);
+  private http = inject(HttpClient);
+
+  private getAuthHeaders = () => new HttpHeaders().set('Authorization', `Bearer ${this.authService.getToken()}`);
+
+  getSubjects = (): Observable<any> => this.http.get(this.apiUrl, { headers: this.getAuthHeaders() });
+  createSubject = (data: any): Observable<any> => this.http.post(this.apiUrl, data, { headers: this.getAuthHeaders() });
+  updateSubject = (id: string, data: any): Observable<any> => this.http.put(`${this.apiUrl}/${id}`, data, { headers: this.getAuthHeaders() });
+  deleteSubject = (id: string): Observable<any> => this.http.delete(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() });
+}
+
+--- app/_services/user.spec.ts ---
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { AuthService } from './auth';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class userService {
+  private apiUrl = 'http://localhost:3000/api/users';
+  private authService = inject(AuthService);
+
+  constructor(private http: HttpClient) { }
+  
+  // Helper to get auth headers
+  private getAuthHeaders(): HttpHeaders {
+    const token = this.authService.getToken();
+    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
+  }
+
+  getusers(): Observable<any> {
+    return this.http.get(this.apiUrl, { headers: this.getAuthHeaders() });
+  }
+
+  createuser(userData: any): Observable<any> {
+    return this.http.post(this.apiUrl, userData, { headers: this.getAuthHeaders() });
+  }
+  
+  // Add update and delete methods later
+  deleteuser(id: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() });
+  }
+}
+
+--- app/_services/user.ts ---
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { AuthService } from './auth';
+
+@Injectable({ providedIn: 'root' })
+export class UserService {
+  private apiUrl = 'http://localhost:3000/api/users';
+  private authApiUrl = 'http://localhost:3000/api/auth';
+  private authService = inject(AuthService);
+  private http = inject(HttpClient);
+
+  private getAuthHeaders = () => new HttpHeaders().set('Authorization', `Bearer ${this.authService.getToken()}`);
+  
+  getUsersByRole = (role: string): Observable<any> => this.http.get(`${this.apiUrl}?role=${role}`, { headers: this.getAuthHeaders() });
+  createUser = (data: any): Observable<any> => this.http.post(`${this.authApiUrl}/register`, data);
+  updateUser = (id: string, data: any): Observable<any> => this.http.put(`${this.apiUrl}/${id}`, data, { headers: this.getAuthHeaders() });
+  deleteUser = (id: string): Observable<any> => this.http.delete(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() });
+}
