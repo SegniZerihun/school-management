@@ -7,7 +7,7 @@ import { AuthService } from './auth';
   providedIn: 'root'
 })
 export class gradeService {
-  private apiUrl = 'http://localhost:3000/api/grades';
+  private apiUrl = 'http://https://school-management-ea5q.onrender.com/api/grades';
   private authService = inject(AuthService);
 
   constructor(private http: HttpClient) { }

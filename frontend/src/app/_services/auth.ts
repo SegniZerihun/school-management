@@ -10,7 +10,7 @@ import { Router } from '@angular/router';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api/auth';
+  private apiUrl = 'http://https://school-management-ea5q.onrender.com/api/auth';
   private userRole: string | null = null;
   private userId: string | null = null;
   private userName: string | null = null; // <-- Add userName property
