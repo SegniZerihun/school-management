@@ -9,9 +9,9 @@ import { AuthService } from './auth';
   providedIn: 'root'
 })
 export class UserService {
-  private userApiUrl = 'http://https://school-management-ea5q.onrender.com/api/users';
+  private userApiUrl = 'https://school-management-ea5q.onrender.com/api/users';
   // Admin uses the public registration route to create new users
-  private registerApiUrl = 'http://https://school-management-ea5q.onrender.com/api/auth/register';
+  private registerApiUrl = 'https://school-management-ea5q.onrender.com/api/auth/register';
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 

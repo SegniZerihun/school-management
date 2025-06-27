@@ -75,7 +75,7 @@ You will need to run the backend and frontend servers in two separate terminals.
     - ```bash
       npm start
       ```
-    - The server will be running on `http://https://school-management-ea5q.onrender.com`.
+    - The server will be running on `https://school-management-ea5q.onrender.com`.
 
 2.  **Run the Frontend Server:**
     - Navigate to the `frontend` directory.

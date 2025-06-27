@@ -7,7 +7,7 @@ import { AuthService } from './auth';
   providedIn: 'root'
 })
 export class MarkService {
-  private apiUrl = 'http://https://school-management-ea5q.onrender.com/api/marks';
+  private apiUrl = 'https://school-management-ea5q.onrender.com/api/marks';
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 

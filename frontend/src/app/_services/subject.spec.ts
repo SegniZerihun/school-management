@@ -7,7 +7,7 @@ import { AuthService } from './auth';
   providedIn: 'root'
 })
 export class SubjectService {
-  private apiUrl = 'http://https://school-management-ea5q.onrender.com/api/subjects';
+  private apiUrl = 'https://school-management-ea5q.onrender.com/api/subjects';
   private authService = inject(AuthService);
 
   constructor(private http: HttpClient) { }

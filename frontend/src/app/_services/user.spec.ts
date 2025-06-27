@@ -7,7 +7,7 @@ import { AuthService } from './auth';
   providedIn: 'root'
 })
 export class userService {
-  private apiUrl = 'http://https://school-management-ea5q.onrender.com/api/users';
+  private apiUrl = 'https://school-management-ea5q.onrender.com/api/users';
   private authService = inject(AuthService);
 
   constructor(private http: HttpClient) { }
